@@ -1,6 +1,7 @@
 package handlecontrol
 
-import (
+import
+(
 	"net/http"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -57,26 +58,6 @@ func error(w http.ResponseWriter, r *http.Request, err int) {
 	if err == http.StatusNotFound {
 		fmt.Fprint(w, "Error 404")
 	}
-}
-
-func CreateTopic(w http.ResponseWriter, r *http.Request){
-	value:= mux.Vars(r)
-
-	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("ap-south-1"),
-		Credentials: credentials.NewStaticCredentials(AKID, SECRET_KEY, ""),
-	},)
-	svc := sns.New(sess)
-	result, err := svc.CreateTopic(&sns.CreateTopicInput{
-		Name: aws.String(value["name"]),
-	})
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
-
-	fmt.Println("Topic created ",*result.TopicArn)
-	fmt.Fprintln(w, *result.TopicArn)
 }
 
 func GetSubByTopic(w http.ResponseWriter, r *http.Request){
@@ -173,6 +154,43 @@ func SendMsg(w http.ResponseWriter, r *http.Request){
 	fmt.Println("Message Sent")
 }
 
+func CreateTopic(w http.ResponseWriter, r *http.Request) {
+	value := mux.Vars(r)
+
+	sess, err := session.NewSession(&aws.Config{
+		Region:      aws.String("ap-south-1"),
+		Credentials: credentials.NewStaticCredentials(AKID, SECRET_KEY, ""),
+	}, )
+	svc := sns.New(sess)
+	alltopics, err := svc.ListTopics(nil)
+	deltemp := "arn:aws:sns:ap-south-1:210721209503:" + value["name"]
+	k:=0
+	for _, t := range alltopics.Topics {
+		if deltemp == *t.TopicArn {
+			fmt.Println("Topic already exists")
+			fmt.Fprintln(w,"Topic exists")
+			k=1
+			break
+		}
+		}
+
+	if k!=1{
+		result, err := svc.CreateTopic(&sns.CreateTopicInput{
+		Name: aws.String(value["name"]),
+		})
+		fmt.Println("Topic created ",*result.TopicArn)
+		fmt.Fprintln(w, *result.TopicArn)
+		if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+		}
+	}
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(1)
+	}
+	}
+
 /*
 Documentation:
 
@@ -206,4 +224,4 @@ func WriteHeader():
 
 func Vars():
 	Vars returns the route variables for the current request
- */
+*/
