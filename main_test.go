@@ -2,16 +2,13 @@ package main
 
 import (
 	"gorilla/mux"
-	"Projectv2/middlewares/basicauthmiddleware"
 	"net/http"
-	"Projectv2/handlecontrol"
 	"testing"
 	"net/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"fmt"
-
-	"encoding/json"
-	"bytes"
+	"Projectv2/handlecontrol"
+	"Projectv2/middlewares/basicauthmiddleware"
 )
 
 type Topic struct{
@@ -24,10 +21,11 @@ func y() *mux.Router {
 	y := mux.NewRouter()
 	y.HandleFunc("/", handlecontrol.Home).Methods("GET")
 	y.HandleFunc("/topics", handlecontrol.GetTopics).Methods("GET")
-	y.Handle("/topics/{name}", basicauthmiddleware.BasicAuthMiddleware(http.HandlerFunc(handlecontrol.GetSubByTopic))).Methods("GET")
-	y.Handle("/topics/{name}", basicauthmiddleware.BasicAuthMiddleware(http.HandlerFunc(handlecontrol.CreateTopic))).Methods("POST")
+	y.HandleFunc("/topics/{name}", handlecontrol.GetSubByTopic).Methods("GET")
+	y.HandleFunc("/topics/{name}", handlecontrol.CreateTopic).Methods("POST")
+	y.HandleFunc("/{name}/{msg}", handlecontrol.SendMsg).Methods("POST")
 	y.HandleFunc("/topics/{name}/{sub}", handlecontrol.CreateSub).Methods("POST")
-	y.Handle("/{name}/{msg}", basicauthmiddleware.BasicAuthMiddleware(http.HandlerFunc(handlecontrol.SendMsg))).Methods("POST")
+	//y.HandleFunc("/topics/{name}", handlecontrol.DeleteTopicByName).Methods("DELETE")
 	y.Handle("/topics/{name}", basicauthmiddleware.BasicAuthMiddleware(http.HandlerFunc(handlecontrol.DeleteTopicByName))).Methods("DELETE")
 
 	return y
@@ -51,71 +49,51 @@ func TestGetTopics(t *testing.T){
 }
 
 func TestGetSubByTopic(t *testing.T){
-
-	topic:=&Topic{
-		name:"topic03",
-	}
-	jsontopic,_:=json.Marshal(topic)
-	request, _ := http.NewRequest("GET", "/topics/{name}", bytes.NewBuffer(jsontopic))
+	topicname:="topic03"
+	request, _ := http.NewRequest("GET", "/topics/"+topicname, nil)
 	response := httptest.NewRecorder()
 	y().ServeHTTP(response, request)
-	assert.Equal(t, 401, response.Code, "OK response is expected")
+	assert.Equal(t, 200, response.Code, "OK response is expected")
 	fmt.Print(response.Body)
-	fmt.Println("Admin access needed")
 }
 
 func TestCreateTopic(t *testing.T){
-	topic:=&Topic{
-		name:"topic04",
-	}
-	jsontopic,_:=json.Marshal(topic)
-	request, _ := http.NewRequest("POST", "/topics/{name}",bytes.NewBuffer(jsontopic))
+	topicname:="topic04"
+	request, _ := http.NewRequest("POST", "/topics/"+topicname,nil)
 	response := httptest.NewRecorder()
 	y().ServeHTTP(response, request)
-	assert.Equal(t, 401, response.Code, "OK response is expected")
+	assert.Equal(t, 200, response.Code, "OK response is expected")
 	fmt.Print(response.Body)
-	fmt.Println("Admin access needed")
 }
 
 func TestDeleteTopicByName(t *testing.T){
-	topic:=&Topic{
-		name:"topic04",
-	}
-	jsontopic,_:=json.Marshal(topic)
-	request, _ := http.NewRequest("DELETE", "/topics/{name}", bytes.NewBuffer(jsontopic))
+	topicname:="topic04"
+	request, _ := http.NewRequest("DELETE", "/topics/"+topicname, nil)
 	response := httptest.NewRecorder()
 	y().ServeHTTP(response, request)
 	assert.Equal(t, 401, response.Code, "OK response is expected")
 	fmt.Print(response.Body)
-	fmt.Println("Admin access needed")
+	fmt.Println("Access denied")
 }
 
 func TestSendMsg(t *testing.T){
-	topic:=&Topic{
-		name:"topic04",
-		msg:"Hello",
-	}
-	jsontopic,_:=json.Marshal(topic)
-	request, _ := http.NewRequest("POST", "/{name}/{msg}",bytes.NewBuffer(jsontopic))
+	topicname:="topic03"
+	message:="Hi"
+	request, _ := http.NewRequest("POST", "/"+topicname+"/"+message,nil)
 	response := httptest.NewRecorder()
 	y().ServeHTTP(response, request)
-	assert.Equal(t, 401, response.Code, "OK response is expected")
+	assert.Equal(t, 200, response.Code, "OK response is expected")
 	fmt.Print(response.Body)
-	fmt.Println("Admin access needed")
 }
 
 func TestCreateSub(t *testing.T){
-	topic:=&Topic{
-		name:"topic04",
-		sub:"gulati.yashvi@gmail.com",
-	}
-	jsontopic,_:=json.Marshal(topic)
-	request, _ := http.NewRequest("POST", "/topics/{name}",bytes.NewBuffer(jsontopic))
+	topicname:="topic01"
+	subname:="yashvi.gulati@gmail.com"
+	request, _ := http.NewRequest("POST", "/topics/"+topicname+"/"+subname,nil)
 	response := httptest.NewRecorder()
 	y().ServeHTTP(response, request)
-	assert.Equal(t, 401, response.Code, "OK response is expected")
+	assert.Equal(t, 200, response.Code, "OK response is expected")
 	fmt.Print(response.Body)
-	fmt.Println("Admin access needed")
 }
 
 /*
