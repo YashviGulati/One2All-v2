@@ -9,7 +9,16 @@ import (
 	"net/http/httptest"
 	"github.com/stretchr/testify/assert"
 	"fmt"
+
+	"encoding/json"
+	"bytes"
 )
+
+type Topic struct{
+	name string
+	sub string
+	msg string
+}
 
 func y() *mux.Router {
 	y := mux.NewRouter()
@@ -42,37 +51,88 @@ func TestGetTopics(t *testing.T){
 }
 
 func TestGetSubByTopic(t *testing.T){
-	request, _ := http.NewRequest("GET", "/topics/{name}",nil)
+
+	topic:=&Topic{
+		name:"topic03",
+	}
+	jsontopic,_:=json.Marshal(topic)
+	request, _ := http.NewRequest("GET", "/topics/{name}", bytes.NewBuffer(jsontopic))
 	response := httptest.NewRecorder()
 	y().ServeHTTP(response, request)
 	assert.Equal(t, 401, response.Code, "OK response is expected")
-	fmt.Println(response.Body)
+	fmt.Print(response.Body)
+	fmt.Println("Admin access needed")
 }
 
 func TestCreateTopic(t *testing.T){
-	request, _ := http.NewRequest("POST", "/topics/{name}",nil)
+	topic:=&Topic{
+		name:"topic04",
+	}
+	jsontopic,_:=json.Marshal(topic)
+	request, _ := http.NewRequest("POST", "/topics/{name}",bytes.NewBuffer(jsontopic))
 	response := httptest.NewRecorder()
 	y().ServeHTTP(response, request)
 	assert.Equal(t, 401, response.Code, "OK response is expected")
-	fmt.Println(response.Body)
+	fmt.Print(response.Body)
+	fmt.Println("Admin access needed")
 }
 
 func TestDeleteTopicByName(t *testing.T){
-	request, _ := http.NewRequest("DELETE", "/topics/{name}",nil)
+	topic:=&Topic{
+		name:"topic04",
+	}
+	jsontopic,_:=json.Marshal(topic)
+	request, _ := http.NewRequest("DELETE", "/topics/{name}", bytes.NewBuffer(jsontopic))
 	response := httptest.NewRecorder()
 	y().ServeHTTP(response, request)
 	assert.Equal(t, 401, response.Code, "OK response is expected")
-	fmt.Println(response.Body)
+	fmt.Print(response.Body)
+	fmt.Println("Admin access needed")
 }
 
 func TestSendMsg(t *testing.T){
-	request, _ := http.NewRequest("POST", "/{name}/{msg}", nil)
+	topic:=&Topic{
+		name:"topic04",
+		msg:"Hello",
+	}
+	jsontopic,_:=json.Marshal(topic)
+	request, _ := http.NewRequest("POST", "/{name}/{msg}",bytes.NewBuffer(jsontopic))
 	response := httptest.NewRecorder()
 	y().ServeHTTP(response, request)
 	assert.Equal(t, 401, response.Code, "OK response is expected")
-	fmt.Println(response.Body)
+	fmt.Print(response.Body)
+	fmt.Println("Admin access needed")
 }
 
-//func Create Sub
+func TestCreateSub(t *testing.T){
+	topic:=&Topic{
+		name:"topic04",
+		sub:"gulati.yashvi@gmail.com",
+	}
+	jsontopic,_:=json.Marshal(topic)
+	request, _ := http.NewRequest("POST", "/topics/{name}",bytes.NewBuffer(jsontopic))
+	response := httptest.NewRecorder()
+	y().ServeHTTP(response, request)
+	assert.Equal(t, 401, response.Code, "OK response is expected")
+	fmt.Print(response.Body)
+	fmt.Println("Admin access needed")
+}
 
+/*
+Documentation:
 
+func NewRequest():
+	NewRequest returns a new Request given a method, URL, and optional body
+
+func NewRecorder():
+	NewRecorder returns an initialized ResponseRecorder.
+
+func ServeHTTP():
+	ServeHTTP dispatches the request to the handler whose pattern most closely matches the request URL.
+
+func NewBuffer():
+	creates a buffer to read an existing data
+
+func Marshal():
+	Marshal returns the JSON encoding
+ */
