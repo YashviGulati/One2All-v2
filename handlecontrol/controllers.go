@@ -17,8 +17,7 @@ const (
 	SECRET_KEY string = ""
 )
 
-
-var Home = func (w http.ResponseWriter, r *http.Request)(){
+func Home(w http.ResponseWriter, r *http.Request)(){
 	if r.URL.Path != "/"{
 		error(w,r, http.StatusNotFound)
 		return
@@ -27,7 +26,7 @@ var Home = func (w http.ResponseWriter, r *http.Request)(){
 	fmt.Fprint(w, "Welcome to Homepage")
 }
 
-var GetTopics = func(w http.ResponseWriter, r *http.Request)(){
+func GetTopics(w http.ResponseWriter, r *http.Request)(){
 
 	if r.URL.Path != "/topics"{
 		error(w,r, http.StatusNotFound)
@@ -53,15 +52,14 @@ var GetTopics = func(w http.ResponseWriter, r *http.Request)(){
 	fmt.Println("Topics listed")
 }
 
-var error = func(w http.ResponseWriter, r *http.Request, err int) {
-	//WriteHeader sends an HTTP response header with the provided status code
+func error(w http.ResponseWriter, r *http.Request, err int) {
 	w.WriteHeader(err)
 	if err == http.StatusNotFound {
 		fmt.Fprint(w, "Error 404")
 	}
 }
 
-var CreateTopic = func(w http.ResponseWriter, r *http.Request){
+func CreateTopic(w http.ResponseWriter, r *http.Request){
 	value:= mux.Vars(r)
 
 	sess, err := session.NewSession(&aws.Config{
@@ -81,7 +79,7 @@ var CreateTopic = func(w http.ResponseWriter, r *http.Request){
 	fmt.Fprintln(w, *result.TopicArn)
 }
 
-var GetSubByTopic = func(w http.ResponseWriter, r *http.Request){
+func GetSubByTopic(w http.ResponseWriter, r *http.Request){
 	value:=mux.Vars(r)
 	deltemp:="arn:aws:sns:ap-south-1:210721209503:"+value["name"]
 	sess, err := session.NewSession(&aws.Config{
@@ -100,7 +98,7 @@ var GetSubByTopic = func(w http.ResponseWriter, r *http.Request){
 
 }
 
-var DeleteTopicByName= func(w http.ResponseWriter, r *http.Request){
+func DeleteTopicByName(w http.ResponseWriter, r *http.Request){
 	value:= mux.Vars(r)
 	deltemp:="arn:aws:sns:ap-south-1:210721209503:"+value["name"]
 	sess, err := session.NewSession(&aws.Config{
@@ -118,7 +116,7 @@ var DeleteTopicByName= func(w http.ResponseWriter, r *http.Request){
 	fmt.Println("Deletion Successful : ", value["name"])
 }
 
-var CreateSub= func(w http.ResponseWriter, r *http.Request){
+func CreateSub(w http.ResponseWriter, r *http.Request){
 
 	value:= mux.Vars(r)
 	subname:=value["sub"]
@@ -149,7 +147,7 @@ var CreateSub= func(w http.ResponseWriter, r *http.Request){
 	fmt.Fprintln(w,"Subscription Created:  "+*result.SubscriptionArn)
 }
 
-var SendMsg= func(w http.ResponseWriter, r *http.Request){
+func SendMsg(w http.ResponseWriter, r *http.Request){
 
 	value:= mux.Vars(r)
 	sess, err := session.NewSession(&aws.Config{
@@ -174,3 +172,38 @@ var SendMsg= func(w http.ResponseWriter, r *http.Request){
 	fmt.Fprintln(w,result.String())
 	fmt.Println("Message Sent")
 }
+
+/*
+Documentation:
+
+Constants::These are the credentials provided by AWS for a specific user account
+	{
+	AKID string = Access Key Identifier
+	SECRET_KEY string = Secret Key
+	}
+
+func Home():: displays the homepage
+func GetTopics():: displays all the existing topics
+func CreateTopic():: creates a topic **Authentication is required
+func GetSubByTopic():: shows all the subscriptions for the specific topic
+func DeleteTopicByName():: deletes the specific topic
+func CreateSub():: creates a subscription associated with a specific topic
+func SendMsg():: sends the message to the specific topic
+
+'''
+Parameters:
+1. http.ResponseWriter :: A ResponseWriter interface is used by an HTTP handler to construct an HTTP response.
+2. *http.Request :: A Request represents an HTTP request received by a server or to be sent by a client.
+'''
+
+func NewSession():
+	NewSession returns a new Session created from SDK defaults,
+	config files, environment, and user provided config files.
+	Once the Session is created it can be mutated to modify the Config or Handlers.
+
+func WriteHeader():
+	WriteHeader sends an HTTP response header with the provided status code
+
+func Vars():
+	Vars returns the route variables for the current request
+ */
